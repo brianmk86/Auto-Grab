@@ -6,17 +6,35 @@
     - No implementa targeting, ESP, silent aim, auto-fire ni exploits.
 ]=]
 
-local Fluent = loadstring(game:HttpGet(
+local function safeLoad(url)
+    local ok, source = pcall(function()
+        return game:HttpGet(url)
+    end)
+    if not ok or type(source) ~= "string" then
+        return nil
+    end
+    local compileOk, chunk = pcall(loadstring, source)
+    if not compileOk or type(chunk) ~= "function" then
+        return nil
+    end
+    local runOk, result = pcall(chunk)
+    return runOk and result or nil
+end
+
+local Fluent = safeLoad(
     "https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"
-))()
+)
+if not Fluent then
+    warn("Kicia Demo UI: no se pudo cargar Fluent UI.")
+    return
+end
 
-local SaveManager = loadstring(game:HttpGet(
+local SaveManager = safeLoad(
     "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"
-))()
-
-local InterfaceManager = loadstring(game:HttpGet(
+)
+local InterfaceManager = safeLoad(
     "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"
-))()
+)
 
 local Window = Fluent:CreateWindow({
     Title = "Kicia Demo UI",
@@ -55,9 +73,8 @@ local function demoToggle(tab, id, title, description)
         Default = false,
     })
     item:OnChanged(function()
-        -- Deliberadamente no ejecuta lógica de juego.
+        -- Deliberadamente no ejecuta lógica de juego ni cambia el toggle.
         demoNotice(title)
-        item:SetValue(false)
     end)
     return item
 end
@@ -141,14 +158,23 @@ demoToggle(Tabs.Misc, "DeviceSpoof", "Device spoof (disabled)")
 demoButton(Tabs.Misc, "Test notification", "Prueba visual")
 
 -- Settings -------------------------------------------------------------------
-InterfaceManager:SetLibrary(Fluent)
-SaveManager:SetLibrary(Fluent)
-SaveManager:IgnoreThemeSettings()
-SaveManager:SetIgnoreIndexes({})
-InterfaceManager:SetFolder("KiciaDemoUI")
-SaveManager:SetFolder("KiciaDemoUI/configs")
-InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-SaveManager:BuildConfigSection(Tabs.Settings)
+if InterfaceManager and SaveManager then
+    pcall(function()
+        InterfaceManager:SetLibrary(Fluent)
+        SaveManager:SetLibrary(Fluent)
+        SaveManager:IgnoreThemeSettings()
+        SaveManager:SetIgnoreIndexes({})
+        InterfaceManager:SetFolder("KiciaDemoUI")
+        SaveManager:SetFolder("KiciaDemoUI/configs")
+        InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+        SaveManager:BuildConfigSection(Tabs.Settings)
+    end)
+else
+    Tabs.Settings:AddParagraph({
+        Title = "Managers unavailable",
+        Content = "La interfaz funciona, pero los addons de guardado no están disponibles.",
+    })
+end
 
 Window:SelectTab(1)
 Fluent:Notify({
