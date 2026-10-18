@@ -29,19 +29,12 @@ if not Fluent then
     return
 end
 
-local SaveManager = safeLoad(
-    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"
-)
-local InterfaceManager = safeLoad(
-    "https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"
-)
-
 local Window = Fluent:CreateWindow({
     Title = "Kicia Demo UI",
     SubTitle = "Fluent interface only",
     TabWidth = 160,
     Size = UDim2.fromOffset(620, 480),
-    Acrylic = true,
+    Acrylic = false,
     Theme = "Dark",
     MinimizeKey = Enum.KeyCode.LeftControl,
 })
@@ -73,8 +66,7 @@ local function demoToggle(tab, id, title, description)
         Default = false,
     })
     item:OnChanged(function()
-        -- Deliberadamente no ejecuta lógica de juego ni cambia el toggle.
-        demoNotice(title)
+        -- Deliberadamente no ejecuta lógica de juego.
     end)
     return item
 end
@@ -99,7 +91,7 @@ local function demoSlider(tab, id, title, min, max, default)
         Rounding = 1,
     })
     item:OnChanged(function()
-        demoNotice(title)
+        -- Deliberadamente no ejecuta lógica de juego.
     end)
     return item
 end
@@ -158,23 +150,10 @@ demoToggle(Tabs.Misc, "DeviceSpoof", "Device spoof (disabled)")
 demoButton(Tabs.Misc, "Test notification", "Prueba visual")
 
 -- Settings -------------------------------------------------------------------
-if InterfaceManager and SaveManager then
-    pcall(function()
-        InterfaceManager:SetLibrary(Fluent)
-        SaveManager:SetLibrary(Fluent)
-        SaveManager:IgnoreThemeSettings()
-        SaveManager:SetIgnoreIndexes({})
-        InterfaceManager:SetFolder("KiciaDemoUI")
-        SaveManager:SetFolder("KiciaDemoUI/configs")
-        InterfaceManager:BuildInterfaceSection(Tabs.Settings)
-        SaveManager:BuildConfigSection(Tabs.Settings)
-    end)
-else
-    Tabs.Settings:AddParagraph({
-        Title = "Managers unavailable",
-        Content = "La interfaz funciona, pero los addons de guardado no están disponibles.",
-    })
-end
+Tabs.Settings:AddParagraph({
+    Title = "Minimal demo build",
+    Content = "SaveManager e InterfaceManager no se cargan en esta versión para evitar bloqueos de red.",
+})
 
 Window:SelectTab(1)
 Fluent:Notify({
